@@ -29,7 +29,7 @@ pub struct Candidate {
     pub account_id: AccountId,
     pub description: String,
     pub status: ApplicationStatus,
-    pub votes_received: u64,
+    pub votes_received: u64, // Q: shouldn't have this voter information
     pub application_date: U64,
     pub approval_date: Option<U64>,
 }
@@ -40,7 +40,7 @@ pub struct Candidate {
 pub enum EligibilityType {
     Open,
     ListBased(AccountId, U128), // list contract and id
-    TokenBased(AccountId, U128), // Token contract and minimum balance
+    TokenBased(AccountId, U128), // Token contract and minimum balance // Q does this // Q: what do you mean by zero does his 
     Custom(String), // Custom eligibility contract address
 }
 
@@ -70,7 +70,7 @@ pub struct Election {
     pub voting_type: VotingType,
     pub voter_eligibility: EligibilityType,
     pub auto_approval: bool,
-    pub owner: AccountId,
+    pub owner: AccountId, // Q: there is no admin but method is admin or owner
     pub status: ElectionStatus,
     pub challenge_period_end: Option<U64>,
     pub winner_ids: Vec<AccountId>,
@@ -106,7 +106,7 @@ impl Contract {
 
         let creating_project = env::predecessor_account_id();
 
-        let election = Election {
+        let election = Election { 
             id: election_id,
             title,
             description,
@@ -123,7 +123,7 @@ impl Contract {
             challenge_period_end: None,
             winner_ids: Vec::new(),
             election_type,
-            creating_project,
+            creating_project, // Q: needs a better name like depolyer
         };
 
         self.elections.insert(election_id, election);
@@ -146,10 +146,11 @@ impl Contract {
                 env::block_timestamp() <= election.nomination_end_date.0,
             "Nomination period is not active"
         );
+        // Q: where is the check to see if the candidate already applied to that election, feel like it could reset votes to zeros from existing canddiates reapplying
+
 
         let applicant = env::predecessor_account_id();
         // assert!(self.is_eligible_candidate(&election, &applicant), "Not eligible to be a candidate");
-
         let candidate = Candidate {
             account_id: applicant.clone(),
             description,
@@ -167,7 +168,7 @@ impl Contract {
             },
         };
 
-        let candidates_map = self.candidates.get_mut(&election_id).expect("Candidates map not found");
+        let candidates_map = self.candidates.get_mut(&election_id).expect("Candidates map not found"); // Q: why dont you asser this earlier
         candidates_map.insert(applicant, candidate);
         // self.candidates.insert(election_id, &candidates_map);
     }
